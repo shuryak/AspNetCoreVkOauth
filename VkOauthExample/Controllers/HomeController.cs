@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VkOauthExample.Models;
@@ -13,9 +15,10 @@ namespace VkOauthExample.Controllers
         }
 
         [Authorize]
-        public IActionResult Secret()
+        public async Task<IActionResult> Secret()
         {
-            return View();
+            var token = await HttpContext.GetTokenAsync("access_token");
+            return View("Secret", token.Substring(5, 20));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

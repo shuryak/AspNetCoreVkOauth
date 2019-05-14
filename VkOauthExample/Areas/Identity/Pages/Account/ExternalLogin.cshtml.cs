@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -76,6 +77,12 @@ namespace VkOauthExample.Areas.Identity.Pages.Account
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
             if(result.Succeeded)
             {
+                var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+
+                var props = new AuthenticationProperties();
+                props.StoreTokens(info.AuthenticationTokens);
+                await _signInManager.SignInAsync(user, props, info.LoginProvider);
+
                 _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
                 return LocalRedirect(returnUrl);
             }
@@ -96,7 +103,10 @@ namespace VkOauthExample.Areas.Identity.Pages.Account
                     var loginResult = await _userManager.AddLoginAsync(user, info);
                     if(loginResult.Succeeded)
                     {
-                        await _signInManager.SignInAsync(user, false);
+                        var props = new AuthenticationProperties();
+                        props.StoreTokens(info.AuthenticationTokens);
+
+                        await _signInManager.SignInAsync(user, props);
                         _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
                         return LocalRedirect(returnUrl);
                     }
@@ -127,7 +137,10 @@ namespace VkOauthExample.Areas.Identity.Pages.Account
                     result = await _userManager.AddLoginAsync(user, info);
                     if(result.Succeeded)
                     {
-                        await _signInManager.SignInAsync(user, false);
+                        var props = new AuthenticationProperties();
+                        props.StoreTokens(info.AuthenticationTokens);
+
+                        await _signInManager.SignInAsync(user, props);
                         _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
                         return LocalRedirect(returnUrl);
                     }

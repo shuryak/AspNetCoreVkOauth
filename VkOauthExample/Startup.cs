@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
@@ -37,8 +41,19 @@ namespace VkOauthExample
                         options.ClientId = Configuration["VkAuth:AppId"];
                         options.ClientSecret = Configuration["VkAuth:AppSecret"];
                         options.Scope.Add("email");
-
                         options.SaveTokens = true;
+
+                        options.Events.OnCreatingTicket = ctx =>
+                        {
+                            var tokens = ctx.Properties.GetTokens() as List<AuthenticationToken>;
+                            tokens.Add(new AuthenticationToken()
+                            {
+                                Name = "TicketCreated", 
+                                Value = DateTime.UtcNow.ToString()
+                            });
+                            ctx.Properties.StoreTokens(tokens);
+                            return Task.CompletedTask;
+                        };;
                     });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
